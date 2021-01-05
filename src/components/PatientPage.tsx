@@ -1,18 +1,41 @@
 import React, {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import {addPatient, setDiagnosisList, useStateValue} from "../state";
+import {addPatient, setDiagnosisList, updatePatient, useStateValue} from "../state";
 import axios from "axios";
 import {Diagnosis, Entry, Gender, Patient} from "../types";
 import {apiBaseUrl} from "../constants";
 import {EntryForm} from "./EntryForm";
+import {Button} from "semantic-ui-react";
+import AddVisitModal from "../AddVisitModal";
+import {PatientFormValues} from "../AddPatientModal/AddPatientForm";
+import {VisitFormValues} from "../AddVisitModal/AddVisitForm";
 
 
 const PatientPage: React.FC = () => {
     const [{patients, diagnoses}, dispatch] = useStateValue();
+    const [modalOpen, setModalOpen] = React.useState<boolean>(false);
     const [patient, setPatient] = useState();
-    const [diagnosesExist, setDiagnosesExist]= useState(false);
+    const [diagnosesExist, setDiagnosesExist] = useState(false);
     const {id} = useParams<{ id: string }>();
     const extendedInfoExists = patients && patients[id] && patients[id].ssn;
+
+    const openModal = (): void => setModalOpen(true);
+    const closeModal = (): void => {
+        setModalOpen(false);
+    };
+    const submitNewVisit = async (values: VisitFormValues) => {
+        try {
+            const {data: updatedPatient} = await axios.post<Patient>(
+                `${apiBaseUrl}/patients/${id}/entries`,
+                values
+            );
+            dispatch(updatePatient(updatedPatient));
+            closeModal();
+        } catch (e) {
+            console.error(e.response.data);
+        }
+    }
+
     useEffect(() => {
         if (!extendedInfoExists) {
             const getExtendedPatientInfo = async () => {
@@ -50,7 +73,7 @@ const PatientPage: React.FC = () => {
         const codes = patientInfo.entries
             .flatMap((entry: Entry) => entry.diagnosisCodes)
             .filter(entry => entry != undefined);
-        for (let i=0; i<codes.length; i++) {
+        for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             if (!code || !diagnoses[code]) {
                 setDiagnosesExist(false);
@@ -77,6 +100,13 @@ const PatientPage: React.FC = () => {
                         ))
                     }
                 </div>
+                <AddVisitModal
+                    modalOpen={modalOpen}
+                    onSubmit={submitNewVisit}
+                    onClose={closeModal}
+                />
+                <br/>
+                <Button onClick={() => openModal()}>Add New Hospital Visit</Button>
             </div>
         );
     } else {
