@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {addPatient, useStateValue} from "../state";
 import axios from "axios";
-import {Gender, Patient} from "../types";
+import {Entry, Gender, Patient} from "../types";
 import {apiBaseUrl} from "../constants";
 
 
@@ -29,24 +29,37 @@ const PatientPage: React.FC = () => {
         } else {
             setPatient(patients[id])
         }
-    }, [ patients])
+    }, [patients])
 
-if (patient) {
-    const icon = patient.gender === Gender.Male ? "mars icon" :
-        patient.gender === Gender.Female ? "venus icon" :
-            "genderless icon"
-    return (<div>
-            <h1>{patient.name} <i className={icon}></i></h1>
+    if (patient) {
+        const icon = patient.gender === Gender.Male ? "mars icon" :
+            patient.gender === Gender.Female ? "venus icon" :
+                "genderless icon"
+        return (<div>
+                <h1>{patient.name} <i className={icon}></i></h1>
                 <p>ssn: {patient.ssn}</p>
-            <p>occupation: {patient.occupation}</p>
+                <p>occupation: {patient.occupation}</p>
+                <h3>entries:</h3>
+                <div>
+                    {patient.entries.map((entry: Entry) => (
+                        <div key={entry.id}>
+                            <div>{entry.date} {entry.description}</div>
+                            <div>
+                                <ul>{entry.diagnosisCodes?.map(d => (
+                                    <li key={d}>{d}</li>
+                                ))}</ul>
+                            </div>
 
-        </div>
-    );
-} else {
-    return (<>
-        </>
-    );
-}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    } else {
+        return (<>
+            </>
+        );
+    }
 
 };
 
