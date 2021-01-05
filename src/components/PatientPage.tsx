@@ -14,6 +14,7 @@ import {VisitFormValues} from "../AddVisitModal/AddVisitForm";
 const PatientPage: React.FC = () => {
     const [{patients, diagnoses}, dispatch] = useStateValue();
     const [modalOpen, setModalOpen] = React.useState<boolean>(false);
+    const [error, setError] = React.useState<string | undefined>();
     const [patient, setPatient] = useState();
     const [diagnosesExist, setDiagnosesExist] = useState(false);
     const {id} = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const PatientPage: React.FC = () => {
     const openModal = (): void => setModalOpen(true);
     const closeModal = (): void => {
         setModalOpen(false);
+        setError(undefined);
     };
     const submitNewVisit = async (values: VisitFormValues) => {
         try {
@@ -33,6 +35,7 @@ const PatientPage: React.FC = () => {
             closeModal();
         } catch (e) {
             console.error(e.response.data);
+            setError(e.response.data.error);
         }
     }
 
@@ -104,6 +107,7 @@ const PatientPage: React.FC = () => {
                     modalOpen={modalOpen}
                     onSubmit={submitNewVisit}
                     onClose={closeModal}
+                    error={error}
                 />
                 <br/>
                 <Button onClick={() => openModal()}>Add New Hospital Visit</Button>
